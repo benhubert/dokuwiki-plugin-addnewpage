@@ -45,8 +45,11 @@ class syntax_plugin_addnewpage extends DokuWiki_Syntax_Plugin {
     // @codingStandardsIgnoreStart
     function handle($match, $state, $pos, &$handler) {
         // @codingStandardsIgnoreEnd
-        $ns = substr($match, 10, -2); // strip markup
-        return array($ns);
+        $tmp = substr($match, 10, -2);
+        $tmp = explode('|', $tmp, 2);
+        // $tmp[0] = namespace
+        // $tmp[1] = page template name
+	return $tmp;
     }
 
     /**
@@ -55,12 +58,14 @@ class syntax_plugin_addnewpage extends DokuWiki_Syntax_Plugin {
      * @return boolean
      */
     function render($mode, &$renderer, $data) {
+
         global $lang;
         $renderer->info['cache'] = false;
-        $data = $data[0]; // get data back from the array
+	$namespace = $data[0][0];
+	$newpagetemplate = $data[1];
 
         if ($mode == 'xhtml') {
-            $ns_select = $this->_makecombo($data);
+            $ns_select = $this->_makecombo($namespace);
             if ($ns_select == $this->getLang('nooption')) {
                 $renderer->doc .= (!$this->getConf('addpage_hideACL')) ? $ns_select : '';
                 return true;
@@ -72,7 +77,11 @@ class syntax_plugin_addnewpage extends DokuWiki_Syntax_Plugin {
                 .DOKU_TAB.DOKU_TAB.$ns_select.DOKU_LF
                 .DOKU_TAB.DOKU_TAB.'<input class="edit" type="text" name="title" size="20" maxlength="255" tabindex="2" />'.DOKU_LF
                 .DOKU_TAB.DOKU_TAB.'<input type="hidden" name="do" value="edit" />'.DOKU_LF
-                .DOKU_TAB.DOKU_TAB.'<input type="hidden" name="id" />'.DOKU_LF
+                .DOKU_TAB.DOKU_TAB.'<input type="hidden" name="id" />'.DOKU_LF;
+            if (strlen($newpagetemplate)>0) {
+                $form .= DOKU_TAB.DOKU_TAB.'<input type="hidden" name="newpagetemplate" value="'.$newpagetemplate.'" />'.DOKU_LF;
+            }
+            $form .= ''
                 .DOKU_TAB.DOKU_TAB.'<input class="button" type="submit" value="'.$button_val.'" tabindex="3" />'.DOKU_LF
                 .DOKU_TAB.'</form>'.DOKU_LF
                 .'</div>';
@@ -150,8 +159,8 @@ class syntax_plugin_addnewpage extends DokuWiki_Syntax_Plugin {
         }
 
         foreach ($r as $k => $v) {
-            if ($data != '') {
-                if (strpos(":" . $v, ":" . $data . ":") === false) {
+            if ($namespace != '') {
+                if (strpos(":" . $v, ":" . $namespace . ":") === false) {
                     continue;
                 }
             }
