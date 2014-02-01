@@ -61,7 +61,7 @@ class syntax_plugin_addnewpage extends DokuWiki_Syntax_Plugin {
 
         global $lang;
         $renderer->info['cache'] = false;
-	$namespace = $data[0][0];
+	$namespace = $data[0];
 	$newpagetemplate = $data[1];
 
         if ($mode == 'xhtml') {
